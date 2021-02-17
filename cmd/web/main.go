@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"github.com/gin-gonic/gin"
-	users "gitlab.com/tleuzhan13/bookstore/users-api/domain"
+	"gitlab.com/tleuzhan13/bookstore/users-api/services"
 	"log"
 	"os"
 
@@ -15,7 +15,7 @@ type app struct {
 	router   *gin.Engine
 	errorLog *log.Logger
 	infoLog  *log.Logger
-	users    *users.SnippetModel
+	service  services.UsersServiceInterface
 }
 
 func main() {
@@ -33,17 +33,20 @@ func main() {
 
 	defer pool.Close()
 
+	usersService := &services.UsersService{}
+
 	router := gin.Default()
 
 	app := &app{
 		router:   router,
 		errorLog: errorLog,
 		infoLog:  infoLog,
+		service:  usersService,
 	}
 	app.routes()
 
 	infoLog.Printf("Starting server on %s", *addr)
-	err := router.Run(*addr)
+	err = router.Run(*addr)
 	if err != nil {
 		app.errorLog.Fatal(err)
 	}
