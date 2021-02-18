@@ -7,26 +7,28 @@ import (
 	"gitlab.com/tleuzhan13/bookstore/users-api/utils/date"
 )
 
-type UsersService struct{}
+type UsersService struct {
+	Repository Repository
+}
 
-type UsersServiceInterface interface {
-	GetUser(int64) (*users.User, rest_errors.RestErr)
-	CreateUser(users.User) (*users.User, rest_errors.RestErr)
-	UpdateUser(bool, users.User) (*users.User, rest_errors.RestErr)
-	DeleteUser(int64) rest_errors.RestErr
-	SearchUser(string) (users.Users, rest_errors.RestErr)
-	LoginUser(users.LoginRequest) (*users.User, rest_errors.RestErr)
+type Repository interface {
+	Get(id int64) (*users.User, rest_errors.RestErr)
+	Save(user *users.User) (*users.User, rest_errors.RestErr)
+	Update(user *users.User) (*users.User, rest_errors.RestErr)
+	Delete(id int64) rest_errors.RestErr
+	FindByStatus(status string) ([]*users.User, rest_errors.RestErr)
+	FindByEmailAndPassword(email string, password string) (*users.User, rest_errors.RestErr)
 }
 
 func (s *UsersService) GetUser(userId int64) (*users.User, rest_errors.RestErr) {
-	dao := &users.User{Id: userId}
-	if err := dao.Get(); err != nil {
+	user, err := s.Repository.Get(userId)
+	if err != nil {
 		return nil, err
 	}
-	return dao, nil
+	return user, nil
 }
 
-func (s *UsersService) CreateUser(user users.User) (*users.User, rest_errors.RestErr) {
+func (s *UsersService) CreateUser(user *users.User) (*users.User, rest_errors.RestErr) {
 	if err := user.Validate(); err != nil {
 		return nil, err
 	}
@@ -34,15 +36,17 @@ func (s *UsersService) CreateUser(user users.User) (*users.User, rest_errors.Res
 	user.Status = users.StatusActive
 	user.DateCreated = date.GetNowDBFormat()
 	user.Password = crypto.GetMd5(user.Password)
-	if err := user.Save(); err != nil {
+	userSaved, err := s.Repository.Save(user)
+	if err != nil {
 		return nil, err
 	}
-	return &user, nil
+	return userSaved, nil
 }
 
-func (s *UsersService) UpdateUser(isPartial bool, user users.User) (*users.User, rest_errors.RestErr) {
-	current := &users.User{Id: user.Id}
-	if err := current.Get(); err != nil {
+func (s *UsersService) UpdateUser(isPartial bool, user *users.User) (*users.User, rest_errors.RestErr) {
+
+	current, err := s.Repository.Get(user.Id)
+	if err != nil {
 		return nil, err
 	}
 
@@ -63,30 +67,25 @@ func (s *UsersService) UpdateUser(isPartial bool, user users.User) (*users.User,
 		current.LastName = user.LastName
 		current.Email = user.Email
 	}
-
-	if err := current.Update(); err != nil {
+	current, err = s.Repository.Update(current)
+	if err != nil {
 		return nil, err
 	}
 	return current, nil
 }
 
 func (s *UsersService) DeleteUser(userId int64) rest_errors.RestErr {
-	dao := &users.User{Id: userId}
-	return dao.Delete()
+	return s.Repository.Delete(userId)
 }
 
 func (s *UsersService) SearchUser(status string) (users.Users, rest_errors.RestErr) {
-	dao := &users.User{}
-	return dao.FindByStatus(status)
+	return s.Repository.FindByStatus(status)
 }
 
-func (s *UsersService) LoginUser(request users.LoginRequest) (*users.User, rest_errors.RestErr) {
-	dao := &users.User{
-		Email:    request.Email,
-		Password: crypto.GetMd5(request.Password),
-	}
-	if err := dao.FindByEmailAndPassword(); err != nil {
+func (s *UsersService) LoginUser(request *users.LoginRequest) (*users.User, rest_errors.RestErr) {
+	usr, err := s.Repository.FindByEmailAndPassword(request.Email, crypto.GetMd5(request.Password))
+	if err != nil {
 		return nil, err
 	}
-	return dao, nil
+	return usr, nil
 }

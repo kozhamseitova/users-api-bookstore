@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"github.com/gin-gonic/gin"
+	"gitlab.com/tleuzhan13/bookstore/users-api/repository"
 	"gitlab.com/tleuzhan13/bookstore/users-api/services"
 	"log"
 	"os"
@@ -15,7 +16,7 @@ type app struct {
 	router   *gin.Engine
 	errorLog *log.Logger
 	infoLog  *log.Logger
-	service  services.UsersServiceInterface
+	service  UsersServiceInterface
 }
 
 func main() {
@@ -33,7 +34,9 @@ func main() {
 
 	defer pool.Close()
 
-	usersService := &services.UsersService{}
+	userRepository := &repository.UserRepository{Pool: pool}
+
+	usersService := &services.UsersService{Repository: userRepository}
 
 	router := gin.Default()
 
