@@ -27,7 +27,7 @@ func getUserId(userIdParam string) (int64, rest_errors.RestErr) {
 
 func (a *app) Create(c *gin.Context) {
 
-	var user *users.User
+	user := &users.User{}
 	if err := c.ShouldBindJSON(user); err != nil {
 		restErr := rest_errors.NewBadRequestError("invalid json body")
 		c.JSON(restErr.Status(), restErr)
