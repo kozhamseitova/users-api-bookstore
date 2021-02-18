@@ -34,7 +34,11 @@ func main() {
 
 	defer pool.Close()
 
-	userRepository := &repository.UserRepository{Pool: pool}
+	userRepository := &repository.UserRepository{
+		Pool:     pool,
+		ErrorLog: errorLog,
+		InfoLog:  infoLog,
+	}
 
 	usersService := &services.UsersService{Repository: userRepository}
 

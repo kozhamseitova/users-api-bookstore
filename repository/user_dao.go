@@ -1,28 +1,30 @@
 package repository
 
 import (
-	"errors"
+	"context"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"gitlab.com/tleuzhan13/bookstore/users-api/domain"
 	"gitlab.com/tleuzhan13/bookstore/users-api/foundation/rest_errors"
-	"strings"
+	"log"
 )
 
 const (
-	queryInsertUser             = "INSERT INTO users(first_name, last_name, email, date_created, status, password) VALUES(?, ?, ?, ?, ?, ?);"
-	queryGetUser                = "SELECT id, first_name, last_name, email, date_created, status FROM users WHERE id=?;"
-	queryUpdateUser             = "UPDATE users SET first_name=?, last_name=?, email=? WHERE id=?;"
-	queryDeleteUser             = "DELETE FROM users WHERE id=?;"
-	queryFindByStatus           = "SELECT id, first_name, last_name, email, date_created, status FROM users WHERE status=?;"
-	queryFindByEmailAndPassword = "SELECT id, first_name, last_name, email, date_created, status FROM users WHERE email=? AND password=? AND status=?"
+	queryInsertUser             = "INSERT INTO users(first_name, last_name, email, date_created, status, password) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id"
+	queryGetUser                = "SELECT id, first_name, last_name, email, date_created, status FROM users WHERE id=$1"
+	queryUpdateUser             = "UPDATE users SET first_name=$1, last_name=$2, email=$3 WHERE id=$4"
+	queryDeleteUser             = "DELETE FROM users WHERE id=$1"
+	queryFindByStatus           = "SELECT id, first_name, last_name, email, date_created, status FROM users WHERE status=$1"
+	queryFindByEmailAndPassword = "SELECT id, first_name, last_name, email, date_created, status FROM users WHERE email=$1 AND password=$2 AND status=$3"
 )
 
 type UserRepository struct {
-	Pool *pgxpool.Pool
+	Pool     *pgxpool.Pool
+	ErrorLog *log.Logger
+	InfoLog  *log.Logger
 }
 
 func (r *UserRepository) Get(id int64) (*users.User, rest_errors.RestErr) {
-	stmt, err := users_db.Client.Prepare(queryGetUser)
+	/*stmt, err := r.Pool.Prepare(queryGetUser)
 	if err != nil {
 		logger.Error("error when trying to prepare get user statement", err)
 		return rest_errors.NewInternalServerError("error when tying to get user", errors.New("database error"))
@@ -35,35 +37,24 @@ func (r *UserRepository) Get(id int64) (*users.User, rest_errors.RestErr) {
 		logger.Error("error when trying to get user by id", getErr)
 		return rest_errors.NewInternalServerError("error when tying to get user", errors.New("database error"))
 	}
-	return nil
+	return nil*/
+	return nil, nil
 }
 
 func (r *UserRepository) Save(user *users.User) (*users.User, rest_errors.RestErr) {
-	stmt, err := users_db.Client.Prepare(queryInsertUser)
+	var userId int64
+	row := r.Pool.QueryRow(context.Background(), queryInsertUser, user.FirstName, user.LastName, user.Email,
+		user.DateCreated, user.Status, user.Password)
+	err := row.Scan(&userId)
 	if err != nil {
-		logger.Error("error when trying to prepare save user statement", err)
-		return rest_errors.NewInternalServerError("error when tying to save user", errors.New("database error"))
-	}
-	defer stmt.Close()
-
-	insertResult, saveErr := stmt.Exec(user.FirstName, user.LastName, user.Email, user.DateCreated, user.Status, user.Password)
-	if saveErr != nil {
-		logger.Error("error when trying to save user", saveErr)
-		return rest_errors.NewInternalServerError("error when tying to save user", errors.New("database error"))
-	}
-
-	userId, err := insertResult.LastInsertId()
-	if err != nil {
-		logger.Error("error when trying to get last insert id after creating a new user", err)
-		return rest_errors.NewInternalServerError("error when tying to save user", errors.New("database error"))
+		return nil, rest_errors.NewInternalServerError("internal server error", err)
 	}
 	user.Id = userId
-
-	return nil
+	return user, nil
 }
 
 func (r *UserRepository) Update(user *users.User) (*users.User, rest_errors.RestErr) {
-	stmt, err := users_db.Client.Prepare(queryUpdateUser)
+	/*stmt, err := users_db.Client.Prepare(queryUpdateUser)
 	if err != nil {
 		logger.Error("error when trying to prepare update user statement", err)
 		return rest_errors.NewInternalServerError("error when tying to update user", errors.New("database error"))
@@ -75,26 +66,28 @@ func (r *UserRepository) Update(user *users.User) (*users.User, rest_errors.Rest
 		logger.Error("error when trying to update user", err)
 		return rest_errors.NewInternalServerError("error when tying to update user", errors.New("database error"))
 	}
-	return nil
+	return nil*/
+	return nil, nil
 }
 
 func (r *UserRepository) Delete(id int64) rest_errors.RestErr {
-	stmt, err := users_db.Client.Prepare(queryDeleteUser)
-	if err != nil {
-		logger.Error("error when trying to prepare delete user statement", err)
-		return rest_errors.NewInternalServerError("error when tying to update user", errors.New("database error"))
-	}
-	defer stmt.Close()
+	/*	stmt, err := users_db.Client.Prepare(queryDeleteUser)
+		if err != nil {
+			logger.Error("error when trying to prepare delete user statement", err)
+			return rest_errors.NewInternalServerError("error when tying to update user", errors.New("database error"))
+		}
+		defer stmt.Close()
 
-	if _, err = stmt.Exec(user.Id); err != nil {
-		logger.Error("error when trying to delete user", err)
-		return rest_errors.NewInternalServerError("error when tying to save user", errors.New("database error"))
-	}
+		if _, err = stmt.Exec(user.Id); err != nil {
+			logger.Error("error when trying to delete user", err)
+			return rest_errors.NewInternalServerError("error when tying to save user", errors.New("database error"))
+		}
+		return nil*/
 	return nil
 }
 
 func (r *UserRepository) FindByStatus(status string) ([]*users.User, rest_errors.RestErr) {
-	stmt, err := users_db.Client.Prepare(queryFindByStatus)
+	/*stmt, err := users_db.Client.Prepare(queryFindByStatus)
 	if err != nil {
 		logger.Error("error when trying to prepare find users by status statement", err)
 		return nil, rest_errors.NewInternalServerError("error when tying to get user", errors.New("database error"))
@@ -120,11 +113,12 @@ func (r *UserRepository) FindByStatus(status string) ([]*users.User, rest_errors
 	if len(results) == 0 {
 		return nil, rest_errors.NewNotFoundError(fmt.Sprintf("no users matching status %s", status))
 	}
-	return results, nil
+	return results, nil*/
+	return nil, nil
 }
 
 func (r *UserRepository) FindByEmailAndPassword(email string, password string) (*users.User, rest_errors.RestErr) {
-	stmt, err := users_db.Client.Prepare(queryFindByEmailAndPassword)
+	/*stmt, err := users_db.Client.Prepare(queryFindByEmailAndPassword)
 	if err != nil {
 		logger.Error("error when trying to prepare get user by email and password statement", err)
 		return rest_errors.NewInternalServerError("error when tying to find user", errors.New("database error"))
@@ -139,5 +133,6 @@ func (r *UserRepository) FindByEmailAndPassword(email string, password string) (
 		logger.Error("error when trying to get user by email and password", getErr)
 		return rest_errors.NewInternalServerError("error when tying to find user", errors.New("database error"))
 	}
-	return nil
+	return nil*/
+	return nil, nil
 }
