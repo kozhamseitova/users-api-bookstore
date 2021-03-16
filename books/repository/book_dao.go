@@ -19,7 +19,7 @@ type BookRepository struct {
 	InfoLog  *log.Logger
 }
 
-func (r *books.Book) Get(id int64) (*books.Book, rest_errors.RestErr) {
+func (r *BookRepository) Get(id int64) (*books.Book, rest_errors.RestErr) {
 	row := r.Pool.QueryRow(context.Background(), queryGetBook, id)
 
 	var book *books.Book

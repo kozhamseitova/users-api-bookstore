@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	books "gitlab.com/tleuzhan13/bookstore/users-api/books/domain"
 	"gitlab.com/tleuzhan13/bookstore/users-api/foundation/rest_errors"
-	users "gitlab.com/tleuzhan13/bookstore/users-api/users/domain"
 	"net/http"
 	"strconv"
 )
@@ -12,9 +11,6 @@ import (
 type BooksServiceInterface interface {
 	GetBook(int64) (*books.Book, rest_errors.RestErr)
 	AddBook(*books.Book) (*books.Book, rest_errors.RestErr)
-	UpdateBook(bool, *books.Book) (*books.Book, rest_errors.RestErr)
-	DeleteBook(int64) rest_errors.RestErr
-	SearchBook(int64) (books.Book, rest_errors.RestErr)
 }
 
 func getBookId(bookIdParam string) (int64, rest_errors.RestErr) {
@@ -43,20 +39,20 @@ func (a *app) Add(c *gin.Context) {
 }
 
 func (a *app) Get(c *gin.Context) {
-	userId, idErr := getBookId(c.Param("user_id"))
+	bookId, idErr := getBookId(c.Param("book_id"))
 	if idErr != nil {
 		c.JSON(idErr.Status(), idErr)
 		return
 	}
 
-	var user users.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var book books.Book
+	if err := c.ShouldBindJSON(&book); err != nil {
 		restErr := rest_errors.NewBadRequestError("invalid json body")
 		c.JSON(restErr.Status(), restErr)
 		return
 	}
 
-	result, err := a.service.GetBook(userId)
+	result, err := a.service.GetBook(bookId)
 	if err != nil {
 		c.JSON(err.Status(), err)
 		return
