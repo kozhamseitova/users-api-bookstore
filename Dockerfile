@@ -1,10 +1,23 @@
-FROM golang:1.14
+FROM golang:1.15.6
 
-WORKDIR go/scr/Bookstore
+RUN mkdir -p /usr/src/app/
 
-COPY . go/src/Bookstore
+WORKDIR /usr/src/app/
 
-RUN apt-get update --yes
-RUN apt-get install --yes netcat
+COPY . /usr/src/app/
 
-EXPOSE 8082/tcp
+RUN go build -o FinalGo cmd/web .
+FROM golang
+
+ADD . /go/src/
+
+WORKDIR /app
+
+COPY . /app
+
+RUN go build -o app cmd/web/*
+
+EXPOSE 4000
+
+ENTRYPOINT  /app/app
+CMD ["./FinalGo"]
