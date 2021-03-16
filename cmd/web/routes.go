@@ -9,4 +9,6 @@ func (a *app) routes() {
 	a.router.DELETE("/users/:user_id", a.Delete)
 	a.router.GET("/internal/users/search", a.Search)
 	a.router.POST("/users/login", a.Login)
+	a.router.GET("/order/add/:order_id", a.Get)
+	a.router.DELETE("/order/byu", a.Delete)
 }
