@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"github.com/gin-gonic/gin"
-	"gitlab.com/tleuzhan13/bookstore/users-api/repository"
-	"gitlab.com/tleuzhan13/bookstore/users-api/services"
+	"gitlab.com/tleuzhan13/bookstore/users-api/users/repository"
+	"gitlab.com/tleuzhan13/bookstore/users-api/users/services"
 	"log"
 	"os"
 
