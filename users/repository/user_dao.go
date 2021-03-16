@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"gitlab.com/tleuzhan13/bookstore/users-api/domain"
 	"gitlab.com/tleuzhan13/bookstore/users-api/foundation/rest_errors"
+	"gitlab.com/tleuzhan13/bookstore/users-api/users/domain"
 	"log"
 )
 

@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	users "gitlab.com/tleuzhan13/bookstore/users-api/domain"
 	"gitlab.com/tleuzhan13/bookstore/users-api/foundation/rest_errors"
+	users "gitlab.com/tleuzhan13/bookstore/users-api/users/domain"
 	"net/http"
 	"strconv"
 )

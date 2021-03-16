@@ -1,10 +1,10 @@
 package services
 
 import (
-	users "gitlab.com/tleuzhan13/bookstore/users-api/domain"
 	"gitlab.com/tleuzhan13/bookstore/users-api/foundation/rest_errors"
-	"gitlab.com/tleuzhan13/bookstore/users-api/utils/crypto"
-	"gitlab.com/tleuzhan13/bookstore/users-api/utils/date"
+	users "gitlab.com/tleuzhan13/bookstore/users-api/users/domain"
+	"gitlab.com/tleuzhan13/bookstore/users-api/users/utils/crypto"
+	"gitlab.com/tleuzhan13/bookstore/users-api/users/utils/date"
 )
 
 type UsersService struct {

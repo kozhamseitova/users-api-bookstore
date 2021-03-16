@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"github.com/gin-gonic/gin"
-	"gitlab.com/tleuzhan13/bookstore/users-api/repository"
-	"gitlab.com/tleuzhan13/bookstore/users-api/services"
+	"gitlab.com/tleuzhan13/bookstore/users-api/books/repository"
+	"gitlab.com/tleuzhan13/bookstore/users-api/books/services"
 	"log"
 	"os"
 
@@ -16,31 +16,31 @@ type app struct {
 	router   *gin.Engine
 	errorLog *log.Logger
 	infoLog  *log.Logger
-	service  UsersServiceInterface
+	service  BooksServiceInterface
 }
 
 func main() {
 
-	addr := flag.String("addr", ":8082", "HTTP network address")
+	addr := flag.String("addr", ":8081", "HTTP network address")
 	flag.Parse()
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	pool, err := pgxpool.Connect(context.Background(), "user=postgres password=kiki host=localhost port=5432 dbname=Bookstore sslmode=disable pool_max_conns=10")
+	pool, err := pgxpool.Connect(context.Background(), "user=postgres password=1234 host=localhost port=5432 dbname=booksgo sslmode=disable pool_max_conns=10")
 	if err != nil {
 		log.Fatalf("Unable to connection to database: %v\n", err)
 	}
 
 	defer pool.Close()
 
-	userRepository := &repository.UserRepository{
+	bookRepository := &repository.BookRepository{
 		Pool:     pool,
 		ErrorLog: errorLog,
 		InfoLog:  infoLog,
 	}
 
-	usersService := &services.UsersService{Repository: userRepository}
+	booksService := &services.BooksService{BRepository: bookRepository}
 
 	router := gin.Default()
 
@@ -48,7 +48,7 @@ func main() {
 		router:   router,
 		errorLog: errorLog,
 		infoLog:  infoLog,
-		service:  usersService,
+		service:  booksService,
 	}
 	app.routes()
 
